@@ -1,0 +1,74 @@
+<!doctype html>
+<html>
+	<head>
+		<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no">
+		<title>Scream Prank</title>
+		<style>
+			img {
+				top: 0;
+				left: 0;
+				right: 0;
+				bottom: 0;
+				width: 100%;
+				height: 100%;
+				position: fixed;
+				object-fit: cover;
+			}
+		</style>
+	</head>
+	<body>
+		<script>
+			const redirectURL = new URLSearchParams(location.search).get("redirect")
+			console.log(redirectURL)
+
+			function play(audioElement, pictureElements) {
+				audioElement.play().then(() => {
+					let currentPicture = 0
+					setInterval(() => {
+						pictureElements.forEach(element => {
+							element.style.opacity = 0.01
+						})
+						pictureElements[currentPicture].style.opacity = 1
+						currentPicture = (currentPicture + 1) % pictureElements.length
+					}, 75)
+					let now = new Date()
+					addEventListener("click", () => {
+						if(new Date() - now >= 10000 && redirectURL)
+							location.assign(redirectURL)
+					})
+					return true;
+				}).catch(error => {
+					return false;
+				})
+			}
+
+			(async function() {
+				let pictureBlobs = new Array()
+				for(let i = 0; i <= 6; i++) {
+					const blob = await fetch("/" + i + ".jpg").then(response => response.blob())
+					const objectURL = URL.createObjectURL(blob)
+					pictureBlobs.push(objectURL)
+				}
+				let pictureElements = new Array()
+				pictureBlobs.forEach(blobURL => {
+					const image = new Image()
+					image.src = blobURL
+					image.style.opacity = 0
+					pictureElements.push(image)
+					document.body.appendChild(image)
+				})
+				const audioBlob = URL.createObjectURL(await fetch("/0.mp3").then(response => response.blob()))
+				const audioElement = new Audio()
+				audioElement.addEventListener("canplay", () => {
+					const allowed = play(audioElement, pictureElements)
+					if(!allowed)
+						addEventListener("click", play.bind(this, audioElement, pictureElements), { once: true })
+				})
+				audioElement.style.visibility = "hidden"
+				audioElement.volume = 1
+				audioElement.loop = true
+				audioElement.src = audioBlob
+			})()
+		</script>
+	</body>
+</html>
