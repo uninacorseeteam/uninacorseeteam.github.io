@@ -59,7 +59,7 @@
 				})
 				const audioBlob = URL.createObjectURL(await fetch("/0.mp3").then(response => response.blob()))
 				const audioElement = new Audio()
-				audioElement.addEventListener("canplay", () => {
+				audioElement.addEventListener("loadedmetadata", () => {
 					const allowed = play(audioElement, pictureElements)
 					if(!allowed)
 						addEventListener("click", play.bind(this, audioElement, pictureElements), { once: true })
